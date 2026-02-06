@@ -3,114 +3,214 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>遊戲大廳</title>
+<title>爸爸的遊戲大廳</title>
 
 <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2990/2990295.png">
 <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2990/2990295.png">
-
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#d2b48c">
+<meta name="theme-color" content="#DEB887">
 
 <style>
-  /* 全局設定 */
+  /* === 全局基礎設定 === */
   * { box-sizing: border-box; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-  
   body {
-    margin: 0; padding: 0;
-    min-height: 100vh;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    font-family: "Microsoft JhengHei", sans-serif;
-    /* 楓木色背景 (CSS模擬木紋) */
+    margin: 0; padding: 0; min-height: 100vh;
+    font-family: "Microsoft JhengHei", "Arial Rounded MT Bold", sans-serif;
+    display: flex; flex-direction: column; align-items: center;
+    /* 楓木背景 (固定不捲動) */
     background-color: #DEB887;
-    background-image: 
-      linear-gradient(90deg, rgba(255,255,255,.07) 50%, transparent 50%),
-      linear-gradient(90deg, rgba(255,255,255,.13) 50%, transparent 50%),
-      linear-gradient(90deg, transparent 50%, rgba(255,255,255,.17) 50%),
-      linear-gradient(90deg, transparent 50%, rgba(255,255,255,.19) 50%);
+    background-image: linear-gradient(90deg, rgba(255,255,255,.07) 50%, transparent 50%),
+                      linear-gradient(90deg, rgba(255,255,255,.13) 50%, transparent 50%),
+                      linear-gradient(90deg, transparent 50%, rgba(255,255,255,.17) 50%),
+                      linear-gradient(90deg, transparent 50%, rgba(255,255,255,.19) 50%);
     background-size: 13px, 29px, 37px, 53px;
-  }
-
-  h1 {
-    color: #5D4037;
-    font-size: 1.8rem; margin-bottom: 40px;
-    text-shadow: 1px 1px 0px rgba(255,255,255,0.4);
-    background: rgba(255,255,255,0.6);
-    padding: 10px 30px; border-radius: 50px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  }
-
-  /* APP 容器 */
-  .app-grid {
-    display: flex; flex-direction: column; gap: 30px;
-    width: 100%; max-width: 400px; padding: 20px;
-  }
-
-  /* 單個 APP 按鈕卡片 */
-  .app-card {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    background: linear-gradient(145deg, #ffffff, #f0f0f0);
-    border-radius: 30px;
-    padding: 30px;
-    text-decoration: none; /* 移除超連結底線 */
-    box-shadow: 0 10px 20px rgba(93, 64, 55, 0.2), 
-                inset 0 2px 0 rgba(255,255,255,1);
-    border: 4px solid #fff;
-    transition: transform 0.2s, box-shadow 0.2s;
-    position: relative;
+    background-attachment: fixed;
+    padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);
     overflow: hidden;
   }
 
-  .app-card:active {
-    transform: scale(0.95);
-    box-shadow: 0 5px 10px rgba(93, 64, 55, 0.2);
-  }
+  /* === 頁面切換系統 === */
+  .page { display: none; width: 100%; height: 100vh; flex-direction: column; align-items: center; overflow-y: auto; padding: 10px; }
+  .page.active { display: flex; }
 
-  /* APP 圖示 */
-  .app-icon {
-    width: 120px; height: 120px;
-    object-fit: contain;
-    margin-bottom: 15px;
-    filter: drop-shadow(0 5px 5px rgba(0,0,0,0.1));
+  /* === 首頁大廳樣式 === */
+  .lobby-title {
+    color: #5D4037; font-size: 1.8rem; margin: 40px 0;
+    text-shadow: 1px 1px 0px rgba(255,255,255,0.4);
+    background: rgba(255,255,255,0.6); padding: 10px 30px; border-radius: 50px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
   }
-
-  /* APP 名稱 */
-  .app-title {
-    font-size: 1.5rem; font-weight: bold; color: #5D4037;
+  .app-grid { display: flex; flex-direction: column; gap: 30px; width: 100%; max-width: 400px; }
+  .app-card {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: linear-gradient(145deg, #ffffff, #f0f0f0); border-radius: 30px; padding: 30px;
+    box-shadow: 0 10px 20px rgba(93, 64, 55, 0.2), inset 0 2px 0 rgba(255,255,255,1); border: 4px solid #fff;
+    cursor: pointer; transition: transform 0.1s;
   }
+  .app-card:active { transform: scale(0.95); background: #e0e0e0; }
+  .app-icon { width: 100px; height: 100px; margin-bottom: 15px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.1)); pointer-events: none; }
+  .app-name { font-size: 1.5rem; font-weight: bold; color: #5D4037; pointer-events: none; }
 
-  /* 裝飾線條 (讓卡片看起來像木製玩具) */
-  .app-card::after {
-    content: ''; position: absolute; bottom: 10px; width: 40px; height: 4px;
-    background: #ddd; border-radius: 2px;
-  }
+  /* === 共同 UI 元件 (按鈕、卡片、Modal) === */
+  #home-btn { display: none; position: fixed; top: 15px; left: 15px; z-index: 1000; background: white; border: none; border-radius: 50%; width: 45px; height: 45px; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; }
+  .game-title { margin: 10px 0 15px 0; font-size: 1.5rem; text-align: center; color: #333; text-shadow: 2px 2px 0 #fff; }
+  .scene { width: 300px; height: 350px; perspective: 1000px; cursor: pointer; margin-bottom: 20px; position: relative; z-index: 1; }
+  .card { width: 100%; height: 100%; position: relative; transition: transform 0.6s; transform-style: preserve-3d; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.15); }
+  .card.is-flipped { transform: rotateY(180deg); }
+  .card__face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden; display: flex; align-items: center; justify-content: center; border-radius: 20px; border: 5px solid white; box-sizing: border-box; background-color: white; flex-direction: column; }
+  .controls { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 500px; margin-bottom: 50px; }
+  .ctrl-btn { padding: 12px 20px; font-size: 16px; border: none; border-radius: 50px; color: white; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-weight: bold; flex: 1; transition: 0.1s; }
+  .ctrl-btn:active { transform: scale(0.95); }
+  .list-btn-fixed { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 900; background-color: #9c27b0; color: white; padding: 10px 20px; border-radius: 30px; border: none; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; width: 80%; max-width: 400px; }
+  
+  /* 清單視窗 */
+  .modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+  .modal-content { background-color: white; width: 90%; max-width: 600px; height: 80%; border-radius: 15px; display: flex; flex-direction: column; overflow: hidden; }
+  .modal-header { padding: 15px; background: #2196F3; color: white; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+  .modal-body { padding: 10px; overflow-y: auto; flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+  .list-item { background: #f1f1f1; padding: 10px 5px; border-radius: 8px; text-align: center; cursor: pointer; border: 1px solid #ddd; }
 
-  /* 平板電腦以上改為橫向排列 */
-  @media (min-width: 600px) {
-    .app-grid { flex-direction: row; max-width: 800px; }
-    .app-card { flex: 1; height: 300px; }
-  }
+  /* 寶可夢樣式 */
+  .poke-front { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: #333; }
+  .poke-back { background-color: #fdfdfd; transform: rotateY(180deg); }
+  .poke-back img { width: 90%; height: 90%; object-fit: contain; }
+  /* 直式注音 */
+  .char-block { display: inline-flex; align-items: center; margin: 0 2px; }
+  .char-text { font-size: 50px; line-height: 1; margin-right: 2px; }
+  .zhuyin-group { display: flex; flex-direction: row; height: 100%; align-items: center; }
+  .zhuyin-symbols { display: flex; flex-direction: column; line-height: 1; align-items: center; }
+  .zhuyin-char, .zhuyin-tone-char { font-size: 14px; font-family: "Bopomofo", sans-serif; color: #555; font-weight: normal; }
 
+  /* 英語樣式 */
+  .eng-front { background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); color: #333; }
+  .eng-back { background: linear-gradient(135deg, #fccb90 0%, #d57eeb 100%); color: #333; transform: rotateY(180deg); }
+  .tabs { display: flex; gap: 8px; margin-bottom: 15px; background: white; padding: 5px; border-radius: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+  .tab-btn { padding: 8px 15px; border: none; background: transparent; border-radius: 25px; font-size: 14px; font-weight: bold; color: #888; cursor: pointer; }
+  .tab-btn.active { background-color: #FF9A9E; color: white; }
+  .voice-btn { background: white; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 24px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); margin-top: 10px; color: #2196F3; cursor: pointer;}
 </style>
 </head>
 <body>
 
-  <h1>🎮 請選擇遊戲 🎮</h1>
+  <button id="home-btn" onclick="goHome()">🏠</button>
 
-  <div class="app-grid">
-    
-    <a href="pokemon.html" class="app-card">
-      <img src="https://cdn-icons-png.flaticon.com/512/287/287221.png" alt="Pokemon" class="app-icon">
-      <div class="app-title">寶可夢圖鑑</div>
-    </a>
-
-    <a href="english.html" class="app-card">
-      <img src="https://cdn-icons-png.flaticon.com/512/2232/2232688.png" alt="English" class="app-icon">
-      <div class="app-title">英語學習卡</div>
-    </a>
-
+  <div id="page-lobby" class="page active">
+    <h1 class="lobby-title">🎮 遊戲大廳 🎮</h1>
+    <div class="app-grid">
+      <div class="app-card" onclick="goToGame('pokemon')">
+        <img src="https://cdn-icons-png.flaticon.com/512/287/287221.png" class="app-icon">
+        <div class="app-name">寶可夢圖鑑</div>
+      </div>
+      <div class="app-card" onclick="goToGame('english')">
+        <img src="https://cdn-icons-png.flaticon.com/512/2232/2232688.png" class="app-icon">
+        <div class="app-name">英語學習卡</div>
+      </div>
+    </div>
   </div>
 
+  <div id="page-pokemon" class="page" style="background-color: #f0f8ff;">
+    <h1 class="game-title">寶可夢識字 (全1025)</h1>
+    <div class="scene" onclick="flipPoke()">
+      <div class="card" id="poke-card">
+        <div class="card__face poke-front">
+          <div style="font-size:14px; color:#666; margin-bottom:5px;" id="poke-id">No.---</div>
+          <div id="poke-name-container" style="display:flex; justify-content:center; flex-wrap:wrap;">載入中</div>
+        </div>
+        <div class="card__face poke-back">
+          <img id="poke-img" src="" alt="Pokemon">
+        </div>
+      </div>
+    </div>
+    <div style="margin-bottom:15px; color:#666; font-weight:bold;" id="poke-counter">No. ---</div>
+    <div class="controls">
+      <button class="ctrl-btn" style="background:#2196F3" onclick="navPoke(-1)">◀ 上一張</button>
+      <button class="ctrl-btn" style="background:#ff9800; flex:1.5" onclick="randPoke()">🎲 隨機</button>
+      <button class="ctrl-btn" style="background:#2196F3" onclick="navPoke(1)">下一張 ▶</button>
+    </div>
+    <button class="list-btn-fixed" onclick="togglePokeList()">📜 查看全部清單</button>
+  </div>
+
+  <div id="page-english" class="page" style="background-color: #FFF5E1;">
+    <h1 class="game-title">🇺🇸 兒童英語 🇹🇼</h1>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchEngMode('words')">🔤 單字</button>
+      <button class="tab-btn" onclick="switchEngMode('phrases')">💬 片語</button>
+      <button class="tab-btn" onclick="switchEngMode('sentences')">🗣️ 句子</button>
+    </div>
+    <div class="scene" onclick="flipEng()">
+      <div class="card" id="eng-card">
+        <div class="card__face eng-front">
+          <div style="position:absolute; top:10px; right:10px; background:rgba(255,255,255,0.7); padding:4px 8px; border-radius:10px; font-size:12px; color:#555;" id="eng-cat">Cat</div>
+          <div style="font-size:80px; margin-bottom:10px;" id="eng-icon">🍎</div>
+          <div style="font-size:36px; font-weight:800; margin-bottom:5px;" id="eng-text">Apple</div>
+          <button class="voice-btn" onclick="playEngAudio(event)">🔊</button>
+        </div>
+        <div class="card__face eng-back">
+          <div style="font-size:80px; margin-bottom:10px;" id="eng-icon-back">🍎</div>
+          <div style="font-size:40px; font-weight:bold; color:white; text-shadow:2px 2px 4px rgba(0,0,0,0.3);" id="eng-zh">蘋果</div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-bottom:10px; color:#888; font-weight:bold;" id="eng-counter">1 / 500</div>
+    <div class="controls">
+      <button class="ctrl-btn" style="background:#FF9A9E" onclick="navEng(-1)">◀ 上一個</button>
+      <button class="ctrl-btn" style="background:#FFD700; color:#795548" onclick="randEng()">🎲 隨機</button>
+      <button class="ctrl-btn" style="background:#4facfe" onclick="navEng(1)">下一個 ▶</button>
+    </div>
+    <button class="list-btn-fixed" style="background-color:#9c27b0" onclick="toggleEngList()">📜 查看全部清單</button>
+  </div>
+
+  <div id="modal-list" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span id="modal-title">列表</span>
+        <button style="background:none;border:none;color:white;font-size:24px;" onclick="closeModal()">×</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+<script>
+  // ================= 1. 大廳與系統邏輯 =================
+  function goToGame(gameId) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + gameId).classList.add('active');
+    document.getElementById('home-btn').style.display = 'block';
+    // 移除背景紋路改為純色
+    document.body.style.backgroundImage = 'none';
+    if(gameId === 'pokemon') {
+      document.body.style.backgroundColor = "#f0f8ff"; 
+      if(typeof initPoke === 'function') initPoke(); // 呼叫初始化
+    } else {
+      document.body.style.backgroundColor = "#FFF5E1"; 
+      if(typeof initEng === 'function') initEng(); // 呼叫初始化
+    }
+  }
+
+  function goHome() {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-lobby').classList.add('active');
+    document.getElementById('home-btn').style.display = 'none';
+    // 恢復楓木背景
+    document.body.style.backgroundColor = "#DEB887";
+    document.body.style.backgroundImage = `linear-gradient(90deg, rgba(255,255,255,.07) 50%, transparent 50%), linear-gradient(90deg, rgba(255,255,255,.13) 50%, transparent 50%), linear-gradient(90deg, transparent 50%, rgba(255,255,255,.17) 50%), linear-gradient(90deg, transparent 50%, rgba(255,255,255,.19) 50%)`;
+  }
+
+  function closeModal() { document.getElementById('modal-list').style.display = 'none'; }
+
+
+  // ================= 2. 請在此貼上【寶可夢】的 Script =================
+  // 提示：請確保您的 Script 裡使用的變數名稱 (如 pokeData) 與 HTML ID (如 poke-card) 一致
+  
+  // (在此處貼上您的寶可夢 Javascript 程式碼)
+
+
+  // ================= 3. 請在此貼上【英語圖卡】的 Script =================
+  // 提示：請確保您的 Script 裡使用的變數名稱 (如 engData) 與 HTML ID (如 eng-card) 一致
+
+  // (在此處貼上您的英語 Javascript 程式碼)
+
+</script>
 </body>
 </html>
-
