@@ -3,331 +3,113 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>寶可夢識字卡</title>
+<title>爸爸的遊戲大廳</title>
 
-<script src="https://unpkg.com/pinyin-pro@3.18.2/dist/index.js"></script>
+<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2990/2990295.png">
+<link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2990/2990295.png">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#d2b48c">
 
 <style>
-  /* 基礎設定 */
-  * { 
-    touch-action: manipulation; 
-    -webkit-tap-highlight-color: transparent; 
-    -webkit-user-select: none; user-select: none;
-    box-sizing: border-box;
-  }
-
+  /* 全局設定 */
+  * { box-sizing: border-box; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+  
   body {
-    font-family: "KaiTi", "BiauKai", "DFKai-SB", "Microsoft JhengHei", serif;
-    background-color: #f0f8ff;
+    margin: 0; padding: 0;
+    min-height: 100vh;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    height: 100vh; margin: 0; padding: 10px;
-    overflow: hidden; 
+    font-family: "Microsoft JhengHei", sans-serif;
+    /* 楓木色背景 (CSS模擬木紋) */
+    background-color: #DEB887;
+    background-image: 
+      linear-gradient(90deg, rgba(255,255,255,.07) 50%, transparent 50%),
+      linear-gradient(90deg, rgba(255,255,255,.13) 50%, transparent 50%),
+      linear-gradient(90deg, transparent 50%, rgba(255,255,255,.17) 50%),
+      linear-gradient(90deg, transparent 50%, rgba(255,255,255,.19) 50%);
+    background-size: 13px, 29px, 37px, 53px;
   }
 
-  /* 卡片主體 */
-  .card-container {
-    width: 100%; max-width: 400px; height: 90vh; /* 稍微拉高以容納直式注音 */
-    background: white; border-radius: 20px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-    display: flex; flex-direction: column; align-items: center;
-    padding: 15px; border: 8px solid #FFCB05;
-    position: relative; margin-bottom: 10px;
+  h1 {
+    color: #5D4037;
+    font-size: 1.8rem; margin-bottom: 40px;
+    text-shadow: 1px 1px 0px rgba(255,255,255,0.4);
+    background: rgba(255,255,255,0.6);
+    padding: 10px 30px; border-radius: 50px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
   }
 
-  /* 圖片區 */
-  .img-area {
-    flex: 1; width: 100%;
-    display: flex; justify-content: center; align-items: center;
-    background-color: #fafafa; border-radius: 15px;
-    margin-bottom: 10px; border-bottom: 2px dashed #ddd;
+  /* APP 容器 */
+  .app-grid {
+    display: flex; flex-direction: column; gap: 30px;
+    width: 100%; max-width: 400px; padding: 20px;
+  }
+
+  /* 單個 APP 按鈕卡片 */
+  .app-card {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: linear-gradient(145deg, #ffffff, #f0f0f0);
+    border-radius: 30px;
+    padding: 30px;
+    text-decoration: none; /* 移除超連結底線 */
+    box-shadow: 0 10px 20px rgba(93, 64, 55, 0.2), 
+                inset 0 2px 0 rgba(255,255,255,1);
+    border: 4px solid #fff;
+    transition: transform 0.2s, box-shadow 0.2s;
     position: relative;
+    overflow: hidden;
   }
 
-  .img-area img {
-    width: 90%; height: 90%; object-fit: contain;
-    filter: drop-shadow(5px 5px 5px rgba(0,0,0,0.1));
+  .app-card:active {
+    transform: scale(0.95);
+    box-shadow: 0 5px 10px rgba(93, 64, 55, 0.2);
   }
 
-  .id-badge {
-    position: absolute; top: 10px; left: 10px;
-    background: #444; color: white; padding: 4px 12px;
-    border-radius: 20px; font-size: 1rem; font-family: Arial, sans-serif;
+  /* APP 圖示 */
+  .app-icon {
+    width: 120px; height: 120px;
+    object-fit: contain;
+    margin-bottom: 15px;
+    filter: drop-shadow(0 5px 5px rgba(0,0,0,0.1));
   }
 
-  /* --- 關鍵修改：文字區塊佈局 --- */
-  .text-row {
-    display: flex; 
-    justify-content: center; 
-    align-items: flex-start; /* 改為靠上對齊，讓國字切齊，注音往下長 */
-    width: 100%; 
-    height: auto; /* 高度自動，由內容撐開 */
-    min-height: 180px; /* 給予足夠空間放直式注音 */
-    gap: 8px; 
-    padding-bottom: 10px;
+  /* APP 名稱 */
+  .app-title {
+    font-size: 1.5rem; font-weight: bold; color: #5D4037;
   }
 
-  /* 字卡容器 */
-  #charContainer {
-    display: flex; 
-    justify-content: center; 
-    align-items: flex-start; /* 靠上對齊 */
-    gap: 2px;
+  /* 裝飾線條 (讓卡片看起來像木製玩具) */
+  .app-card::after {
+    content: ''; position: absolute; bottom: 10px; width: 40px; height: 4px;
+    background: #ddd; border-radius: 2px;
   }
 
-  /* 單字區塊：垂直排列 (字在上，注音在下) */
-  .char-block {
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    justify-content: flex-start;
-    width: 4.5rem; /* 寬度稍微加寬 */
+  /* 平板電腦以上改為橫向排列 */
+  @media (min-width: 600px) {
+    .app-grid { flex-direction: row; max-width: 800px; }
+    .app-card { flex: 1; height: 300px; }
   }
 
-  /* 國字樣式 */
-  .char-text {
-    font-size: 4rem; 
-    font-weight: bold;
-    line-height: 1; 
-    color: #333; 
-    margin-bottom: 10px; /* 國字跟注音的距離 */
-  }
-
-  /* --- 關鍵修改：直式注音樣式 --- */
-  .char-zhuyin {
-    font-size: 1.4rem; /* 注音字體大小 */
-    font-family: "BiauKai", "KaiTi", serif; /* 必須用標楷體，聲調位置才會對 */
-    font-weight: normal; 
-    color: #555; 
-    
-    /* 核心 CSS：垂直書寫模式 */
-    writing-mode: vertical-rl; 
-    text-orientation: upright; /* 讓符號站直，不要轉90度 */
-    
-    letter-spacing: 0.2rem; /* 拉開注音符號間距，更像作業簿 */
-    height: auto;
-  }
-
-  /* 喇叭按鈕 (調整位置) */
-  .audio-btn {
-    background: #ff5722; color: white; border: none; border-radius: 50%;
-    width: 45px; height: 45px; font-size: 1.2rem;
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 3px 5px rgba(0,0,0,0.2); flex-shrink: 0;
-    margin-top: 20px; /* 對齊文字上方 */
-  }
-  .audio-btn:active { transform: scale(0.9); }
-
-  /* 控制按鈕 */
-  .controls { display: flex; gap: 8px; width: 100%; max-width: 400px; height: 55px; }
-  button {
-    border: none; border-radius: 12px; color: white; cursor: pointer;
-    font-size: 1.2rem; font-weight: bold; box-shadow: 0 4px 0 rgba(0,0,0,0.1);
-  }
-  button:active { transform: translateY(2px); box-shadow: none; }
-  .nav-btn { background-color: #2196F3; flex: 1; }
-  .rand-btn { background-color: #ff9800; flex: 1.5; font-size: 1.6rem; }
-  .list-btn { background-color: #9c27b0; width: 50px; font-size: 1.4rem; }
-
-  /* 清單視窗 */
-  .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
-  .modal-content { background-color: white; width: 95%; max-width: 600px; height: 90%; border-radius: 15px; display: flex; flex-direction: column; }
-  .modal-header { padding: 15px; background: #2196F3; color: white; display: flex; justify-content: space-between; align-items: center; font-size: 1.2rem; font-weight: bold; }
-  .close-btn { background: none; border: none; color: white; font-size: 24px; }
-  .modal-body { padding: 10px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; }
-  .list-item { background: #f5f5f5; padding: 10px 5px; border-radius: 8px; text-align: center; border: 1px solid #ddd; }
-  .list-item span { display: block; font-size: 12px; color: #888; margin-bottom: 2px;}
 </style>
 </head>
-<body oncontextmenu="return false;">
+<body>
 
-  <div class="card-container">
-    <div class="img-area">
-      <div class="id-badge" id="cardIdBadge">No.---</div>
-      <img id="cardImage" src="" alt="Pokemon">
-    </div>
+  <h1>🎮 請選擇遊戲 🎮</h1>
+
+  <div class="app-grid">
     
-    <div class="text-row">
-      <div id="charContainer" onclick="playAudio()">載入中</div>
-      <button class="audio-btn" onclick="playAudio()">🔊</button>
-    </div>
+    <a href="pokemon.html" class="app-card">
+      <img src="https://cdn-icons-png.flaticon.com/512/287/287221.png" alt="Pokemon" class="app-icon">
+      <div class="app-title">寶可夢圖鑑</div>
+    </a>
+
+    <a href="english.html" class="app-card">
+      <img src="https://cdn-icons-png.flaticon.com/512/2232/2232688.png" alt="English" class="app-icon">
+      <div class="app-title">英語學習卡</div>
+    </a>
+
   </div>
 
-  <div class="controls">
-    <button class="nav-btn" onclick="prevCard()">◀</button>
-    <button class="rand-btn" onclick="randomCard()">🎲</button>
-    <button class="nav-btn" onclick="nextCard()">▶</button>
-    <button class="list-btn" onclick="toggleList()">📜</button>
-  </div>
-
-  <div id="listModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <span>寶可夢清單</span>
-        <button class="close-btn" onclick="toggleList()">×</button>
-      </div>
-      <div class="modal-body" id="listContainer"></div>
-    </div>
-  </div>
-
-<script>
-  // 1. 保留原本的手動建立 Gen 1 注音表 (100% 準確ㄅㄆㄇ)
-  const gen1_manual = [
-    {n:"妙蛙種子",z:["ㄇㄧㄠˋ","ㄨㄚ","ㄓㄨㄥˇ","ㄗˇ"]},{n:"妙蛙草",z:["ㄇㄧㄠˋ","ㄨㄚ","ㄘㄠˇ"]},{n:"妙蛙花",z:["ㄇㄧㄠˋ","ㄨㄚ","ㄏㄨㄚ"]},{n:"小火龍",z:["ㄒㄧㄠˇ","ㄏㄨㄛˇ","ㄌㄨㄥˊ"]},{n:"火恐龍",z:["ㄏㄨㄛˇ","ㄎㄨㄥˇ","ㄌㄨㄥˊ"]},{n:"噴火龍",z:["ㄆㄣ","ㄏㄨㄛˇ","ㄌㄨㄥˊ"]},{n:"傑尼龜",z:["ㄐㄧㄝˊ","ㄋㄧˊ","ㄍㄨㄟ"]},{n:"卡咪龜",z:["ㄎㄚˇ","ㄇㄧ","ㄍㄨㄟ"]},{n:"水箭龜",z:["ㄕㄨㄟˇ","ㄐㄧㄢˋ","ㄍㄨㄟ"]},{n:"綠毛蟲",z:["ㄌㄩˋ","ㄇㄠˊ","ㄔㄨㄥˊ"]},
-    {n:"鐵甲蛹",z:["ㄊㄧㄝˇ","ㄐㄧㄚˇ","ㄩㄥˇ"]},{n:"巴大蝶",z:["ㄅㄚ","ㄉㄚˋ","ㄉㄧㄝˊ"]},{n:"獨角蟲",z:["ㄉㄨˊ","ㄐㄧㄠˇ","ㄔㄨㄥˊ"]},{n:"鐵殼蛹",z:["ㄊㄧㄝˇ","ㄎㄜˊ","ㄩㄥˇ"]},{n:"大針蜂",z:["ㄉㄚˋ","ㄓㄣ","ㄈㄥ"]},{n:"波波",z:["ㄆㄛ","ㄆㄛ"]},{n:"比比鳥",z:["ㄅㄧˇ","ㄅㄧˇ","ㄋㄧㄠˇ"]},{n:"大比鳥",z:["ㄉㄚˋ","ㄅㄧˇ","ㄋㄧㄠˇ"]},{n:"小拉達",z:["ㄒㄧㄠˇ","ㄌㄚ","ㄉㄚˊ"]},{n:"拉達",z:["ㄌㄚ","ㄉㄚˊ"]},
-    {n:"烈雀",z:["ㄌㄧㄝˋ","ㄑㄩㄝˋ"]},{n:"大嘴雀",z:["ㄉㄚˋ","ㄗㄨㄟˇ","ㄑㄩㄝˋ"]},{n:"阿柏蛇",z:["ㄚ","ㄅㄛˊ","ㄕㄜˊ"]},{n:"阿柏怪",z:["ㄚ","ㄅㄛˊ","ㄍㄨㄞˋ"]},{n:"皮卡丘",z:["ㄆㄧˊ","ㄎㄚˇ","ㄑㄧㄡ"]},{n:"雷丘",z:["ㄌㄟˊ","ㄑㄧㄡ"]},{n:"穿山鼠",z:["ㄔㄨㄢ","ㄕㄢ","ㄕㄨˇ"]},{n:"穿山王",z:["ㄔㄨㄢ","ㄕㄢ","ㄨㄤˊ"]},{n:"尼多蘭",z:["ㄋㄧˊ","ㄉㄨㄛ","ㄌㄢˊ"]},{n:"尼多娜",z:["ㄋㄧˊ","ㄉㄨㄛ","ㄋㄚˋ"]},
-    {n:"尼多后",z:["ㄋㄧˊ","ㄉㄨㄛ","ㄏㄡˋ"]},{n:"尼多朗",z:["ㄋㄧˊ","ㄉㄨㄛ","ㄌㄤˇ"]},{n:"尼多力諾",z:["ㄋㄧˊ","ㄉㄨㄛ","ㄌㄧˋ","ㄋㄨㄛˋ"]},{n:"尼多王",z:["ㄋㄧˊ","ㄉㄨㄛ","ㄨㄤˊ"]},{n:"皮皮",z:["ㄆㄧˊ","ㄆㄧˊ"]},{n:"皮可西",z:["ㄆㄧˊ","ㄎㄜˇ","ㄒㄧ"]},{n:"六尾",z:["ㄌㄧㄡˋ","ㄨㄟˇ"]},{n:"九尾",z:["ㄐㄧㄡˇ","ㄨㄟˇ"]},{n:"胖丁",z:["ㄆㄤˋ","ㄉㄧㄥ"]},{n:"胖可丁",z:["ㄆㄤˋ","ㄎㄜˇ","ㄉㄧㄥ"]},
-    {n:"超音蝠",z:["ㄔㄠ","ㄧㄣ","ㄈㄨˊ"]},{n:"大嘴蝠",z:["ㄉㄚˋ","ㄗㄨㄟˇ","ㄈㄨˊ"]},{n:"走路草",z:["ㄗㄡˇ","ㄌㄨˋ","ㄘㄠˇ"]},{n:"臭臭花",z:["ㄔㄡˋ","ㄔㄡˋ","ㄏㄨㄚ"]},{n:"霸王花",z:["ㄅㄚˋ","ㄨㄤˊ","ㄏㄨㄚ"]},{n:"派拉斯",z:["ㄆㄞˋ","ㄌㄚ","ㄙ"]},{n:"派拉斯特",z:["ㄆㄞˋ","ㄌㄚ","ㄙ","ㄊㄜˋ"]},{n:"毛球",z:["ㄇㄠˊ","ㄑㄧㄡˊ"]},{n:"摩魯蛾",z:["ㄇㄛˊ","ㄌㄨˇ","ㄜˊ"]},{n:"地鼠",z:["ㄉㄧˋ","ㄕㄨˇ"]},
-    {n:"三地鼠",z:["ㄙㄢ","ㄉㄧˋ","ㄕㄨˇ"]},{n:"喵喵",z:["ㄇㄧㄠ","ㄇㄧㄠ"]},{n:"貓老大",z:["ㄇㄠ","ㄌㄠˇ","ㄉㄚˋ"]},{n:"可達鴨",z:["ㄎㄜě","ㄉㄚˊ","ㄧㄚ"]},{n:"哥達鴨",z:["ㄍㄜ","ㄉㄚˊ","ㄧㄚ"]},{n:"猴怪",z:["ㄏㄡˊ","ㄍㄨㄞˋ"]},{n:"火爆猴",z:["ㄏㄨㄛˇ","ㄅㄠˋ","ㄏㄡˊ"]},{n:"卡蒂狗",z:["ㄎㄚˇ","ㄉㄧˋ","ㄍㄡˇ"]},{n:"風速狗",z:["ㄈㄥ","ㄙㄨˋ","ㄍㄡˇ"]},{n:"蚊香蝌蚪",z:["ㄨㄣˊ","ㄒㄧㄤ","ㄎㄜ","ㄉㄡˇ"]},
-    {n:"蚊香君",z:["ㄨㄣˊ","ㄒㄧㄤ","ㄐㄩㄣ"]},{n:"蚊香泳士",z:["ㄨㄣˊ","ㄒㄧㄤ","ㄩㄥˇ","ㄕˋ"]},{n:"凱西",z:["ㄎㄞˇ","ㄒㄧ"]},{n:"勇基拉",z:["ㄩㄥˇ","ㄐㄧ","ㄌㄚ"]},{n:"胡地",z:["ㄏㄨˊ","ㄉㄧˋ"]},{n:"腕力",z:["ㄨㄢˋ","ㄌㄧˋ"]},{n:"豪力",z:["ㄏㄠˊ","ㄌㄧˋ"]},{n:"怪力",z:["ㄍㄨㄞˋ","ㄌㄧˋ"]},{n:"喇叭芽",z:["ㄌㄚˇ","ㄅㄚ","ㄧㄚˊ"]},{n:"口呆花",z:["ㄎㄡˇ","ㄉㄞ","ㄏㄨㄚ"]},
-    {n:"大食花",z:["ㄉㄚˋ","ㄕˊ","ㄏㄨㄚ"]},{n:"瑪瑙水母",z:["ㄇㄚˇ","ㄋㄠˇ","ㄕㄨㄟˇ","ㄇㄨˇ"]},{n:"毒刺水母",z:["ㄉㄨˊ","ㄘˋ","ㄕㄨㄟˇ","ㄇㄨˇ"]},{n:"小拳石",z:["ㄒㄧㄠˇ","ㄑㄩㄢˊ","ㄕˊ"]},{n:"隆隆石",z:["ㄌㄨㄥˊ","ㄌㄨㄥˊ","ㄕˊ"]},{n:"隆隆岩",z:["ㄌㄨㄥˊ","ㄌㄨㄥˊ","ㄧㄢˊ"]},{n:"小火馬",z:["ㄒㄧㄠˇ","ㄏㄨㄛˇ","ㄇㄚˇ"]},{n:"烈焰馬",z:["ㄌㄧㄝˋ","ㄧㄢˋ","ㄇㄚˇ"]},{n:"呆呆獸",z:["ㄉㄞ","ㄉㄞ","ㄕㄡˋ"]},{n:"呆殼獸",z:["ㄉㄞ","ㄎㄜˊ","ㄕㄡˋ"]},
-    {n:"小磁怪",z:["ㄒㄧㄠˇ","ㄘˊ","ㄍㄨㄞˋ"]},{n:"三合一磁怪",z:["ㄙㄢ","ㄏㄜˊ","ㄧ","ㄘˊ","ㄍㄨㄞˋ"]},{n:"大蔥鴨",z:["ㄉㄚˋ","ㄘㄨㄥ","ㄧㄚ"]},{n:"嘟嘟",z:["ㄉㄨ","ㄉㄨ"]},{n:"嘟嘟利",z:["ㄉㄨ","ㄉㄨ","ㄌㄧˋ"]},{n:"小海獅",z:["ㄒㄧㄠˇ","ㄏㄞˇ","ㄕ"]},{n:"白海獅",z:["ㄅㄞˊ","ㄏㄞˇ","ㄕ"]},{n:"臭泥",z:["ㄔㄡˋ","ㄋㄧˊ"]},{n:"臭臭泥",z:["ㄔㄡˋ","ㄔㄡˋ","ㄋㄧˊ"]},{n:"大舌貝",z:["ㄉㄚˋ","ㄕㄜˊ","ㄅㄟˋ"]},
-    {n:"刺甲貝",z:["ㄘˋ","ㄐㄧㄚˇ","ㄅㄟˋ"]},{n:"鬼斯",z:["ㄍㄨㄟˇ","ㄙ"]},{n:"鬼斯通",z:["ㄍㄨㄟˇ","ㄙ","ㄊㄨㄥ"]},{n:"耿鬼",z:["ㄍㄥˇ","ㄍㄨㄟˇ"]},{n:"大岩蛇",z:["ㄉㄚˋ","ㄧㄢˊ","ㄕㄜˊ"]},{n:"催眠貘",z:["ㄘㄨㄟ","ㄇㄧㄢˊ","ㄇㄛˋ"]},{n:"引夢貘人",z:["ㄧㄣˇ","ㄇㄥˋ","ㄇㄛˋ","ㄖㄣˊ"]},{n:"大鉗蟹",z:["ㄉㄚˋ","ㄑㄧㄢˊ","ㄒㄧㄝˋ"]},{n:"巨鉗蟹",z:["ㄐㄩˋ","ㄑㄧㄢˊ","ㄒㄧㄝˋ"]},{n:"霹靂電球",z:["ㄆㄧ","ㄌㄧˋ","ㄉㄧㄢˋ","ㄑㄧㄡˊ"]},
-    {n:"頑皮雷彈",z:["ㄨㄢˊ","ㄆㄧˊ","ㄌㄟˊ","ㄉㄢˋ"]},{n:"蛋蛋",z:["ㄉㄢˋ","ㄉㄢˋ"]},{n:"椰蛋樹",z:["ㄧㄝˊ","ㄉㄢˋ","ㄕㄨˋ"]},{n:"卡拉卡拉",z:["ㄎㄚˇ","ㄌㄚ","ㄎㄚˇ","ㄌㄚ"]},{n:"嘎啦嘎啦",z:["ㄍㄚ","ㄌㄚ","ㄍㄚ","ㄌㄚ"]},{n:"飛腿郎",z:["ㄈㄟ","ㄊㄨㄟˇ","ㄌㄤˊ"]},{n:"快拳郎",z:["ㄎㄨㄞˋ","ㄑㄩㄢˊ","ㄌㄤˊ"]},{n:"大舌頭",z:["ㄉㄚˋ","ㄕㄜˊ","ㄊㄡˊ"]},{n:"瓦斯彈",z:["ㄨㄚˇ","ㄙ","ㄉㄢˋ"]},{n:"雙彈瓦斯",z:["ㄕㄨㄤ","ㄉㄢˋ","ㄨㄚˇ","ㄙ"]},
-    {n:"獨角犀牛",z:["ㄉㄨˊ","ㄐㄧㄠˇ","ㄒㄧ","ㄋㄧㄡˊ"]},{n:"鑽角犀獸",z:["ㄗㄨㄢ","ㄐㄧㄠˇ","ㄒㄧ","ㄕㄡˋ"]},{n:"吉利蛋",z:["ㄐㄧˊ","ㄌㄧˋ","ㄉㄢˋ"]},{n:"蔓藤怪",z:["ㄇㄢˋ","ㄊㄥˊ","ㄍㄨㄞˋ"]},{n:"袋獸",z:["ㄉㄞˋ","ㄕㄡˋ"]},{n:"墨海馬",z:["ㄇㄛˋ","ㄏㄞˇ","ㄇㄚˇ"]},{n:"海刺龍",z:["ㄏㄞˇ","ㄘˋ","ㄌㄨㄥˊ"]},{n:"角金魚",z:["ㄐㄧㄠˇ","ㄐㄧㄣ","ㄩˊ"]},{n:"金魚王",z:["ㄐㄧㄣ","ㄩˊ","ㄨㄤˊ"]},{n:"海星星",z:["ㄏㄞˇ","ㄒㄧㄥ","ㄒㄧㄥ"]},
-    {n:"寶石海星",z:["ㄅㄠˇ","ㄕˊ","ㄏㄞˇ","ㄒㄧㄥ"]},{n:"魔牆人偶",z:["ㄇㄛˊ","ㄑㄧㄤˊ","ㄖㄣˊ","ㄡˇ"]},{n:"飛天螳螂",z:["ㄈㄟ","ㄊㄧㄢ","ㄊㄤˊ","ㄌㄤˊ"]},{n:"迷唇姐",z:["ㄇㄧˊ","ㄔㄨㄣˊ","ㄐㄧㄝˇ"]},{n:"電擊獸",z:["ㄉㄧㄢˋ","ㄐㄧˊ","ㄕㄡˋ"]},{n:"鴨嘴火獸",z:["ㄧㄚ","ㄗㄨㄟˇ","ㄏㄨㄛˇ","ㄕㄡˋ"]},{n:"凱羅斯",z:["ㄎㄞˇ","ㄌㄨㄛˊ","ㄙ"]},{n:"肯泰羅",z:["ㄎㄣˇ","ㄊㄞˋ","ㄌㄨㄛˊ"]},{n:"鯉魚王",z:["ㄌㄧˇ","ㄩˊ","ㄨㄤˊ"]},{n:"暴鯉龍",z:["ㄅㄠˋ","ㄌㄧˇ","ㄌㄨㄥˊ"]},
-    {n:"拉普拉斯",z:["ㄌㄚ","ㄆㄨˇ","ㄌㄚ","ㄙ"]},{n:"百變怪",z:["ㄅㄞˇ","ㄅㄧㄢˋ","ㄍㄨㄞˋ"]},{n:"伊布",z:["ㄧ","ㄅㄨˋ"]},{n:"水伊布",z:["ㄕㄨㄟˇ","ㄧ","ㄅㄨˋ"]},{n:"雷伊布",z:["ㄌㄟˊ","ㄧ","ㄅㄨˋ"]},{n:"火伊布",z:["ㄏㄨㄛˇ","ㄧ","ㄅㄨˋ"]},{n:"多邊獸",z:["ㄉㄨㄛ","ㄅㄧㄢ","ㄕㄡˋ"]},{n:"菊石獸",z:["ㄐㄩˊ","ㄕˊ","ㄕㄡˋ"]},{n:"多刺菊石獸",z:["ㄉㄨㄛ","ㄘˋ","ㄐㄩˊ","ㄕˊ","ㄕㄡˋ"]},{n:"化石盔",z:["ㄏㄨㄚˋ","ㄕˊ","ㄎㄨㄟ"]},
-    {n:"鐮刀盔",z:["ㄌㄧㄢˊ","ㄉㄠ","ㄎㄨㄟ"]},{n:"化石翼龍",z:["ㄏㄨㄚˋ","ㄕˊ","ㄧˋ","ㄌㄨㄥˊ"]},{n:"卡比獸",z:["ㄎㄚˇ","ㄅㄧˇ","ㄕㄡˋ"]},{n:"急凍鳥",z:["ㄐㄧˊ","ㄉㄨㄥˋ","ㄋㄧㄠˇ"]},{n:"閃電鳥",z:["ㄕㄢˇ","ㄉㄧㄢˋ","ㄋㄧㄠˇ"]},{n:"火焰鳥",z:["ㄏㄨㄛˇ","ㄧㄢˋ","ㄋㄧㄠˇ"]},{n:"迷你龍",z:["ㄇㄧˊ","ㄋㄧˇ","ㄌㄨㄥˊ"]},{n:"哈克龍",z:["ㄏㄚ","ㄎㄜˋ","ㄌㄨㄥˊ"]},{n:"快龍",z:["ㄎㄨㄞˋ","ㄌㄨㄥˊ"]},{n:"超夢",z:["ㄔㄠ","ㄇㄥˋ"]},{n:"夢幻",z:["ㄇㄥˋ","ㄏㄨㄢˋ"]}
-  ];
-
-  // (其餘世代使用 pinyin-pro 自動轉換，這裡為了簡潔顯示為空，請您記得填回原本的資料)
-  const gen2_raw=["菊草葉","月桂葉","大竺葵"]; // 範例
-  const gen3_raw=[];
-  const gen4_raw=[];
-  const gen5_raw=[];
-  const gen6_raw=[];
-  const gen7_raw=[];
-  const gen8_raw=[];
-  const gen9_raw=[];
-
-  let allData = [];
-  
-  // 1. 處理 Gen 1
-  gen1_manual.forEach((item, index) => {
-    allData.push({
-      name: item.n,
-      zhuyin: item.z,
-      id: (index + 1).toString().padStart(3, '0')
-    });
-  });
-
-  // 2. 處理 Gen 2-9
-  const otherGens = [].concat(gen2_raw, gen3_raw, gen4_raw, gen5_raw, gen6_raw, gen7_raw, gen8_raw, gen9_raw);
-  let baseIndex = 151;
-  const { pinyin } = window.pinyinPro || { pinyin: null };
-
-  otherGens.forEach((name, i) => {
-    const id = (baseIndex + i + 1).toString().padStart(3, '0');
-    let zList = [];
-    if (pinyin) {
-      try {
-        zList = pinyin(name, { pattern: 'zhuyin', type: 'array', toneType: 'symbol' });
-      } catch (e) {
-        zList = new Array(name.length).fill(""); 
-      }
-    } else {
-      zList = new Array(name.length).fill("");
-    }
-    allData.push({ name: name, zhuyin: zList, id: id });
-  });
-
-  let currentIndex = 0;
-  const charContainer = document.getElementById('charContainer');
-  const idBadgeElement = document.getElementById('cardIdBadge');
-  const imgElement = document.getElementById('cardImage');
-  const modalElement = document.getElementById('listModal');
-  const listContainer = document.getElementById('listContainer');
-
-  initGame();
-
-  function initGame() {
-    generateList();
-    randomCard();
-  }
-
-  function updateCard() {
-    const data = allData[currentIndex];
-    idBadgeElement.innerText = `No. ${data.id}`;
-    imgElement.src = `https://assets.pokemon.com/assets/cms2/img/pokedex/full/${data.id}.png`;
-
-    let html = '';
-    const zhuyinArray = data.zhuyin || [];
-
-    for (let i = 0; i < data.name.length; i++) {
-      const char = data.name[i];
-      let z = zhuyinArray[i] || "";
-      if (/[a-zA-Z]/.test(z)) z = ""; 
-
-      html += `
-        <div class="char-block">
-          <div class="char-text">${char}</div>
-          <div class="char-zhuyin">${z}</div>
-        </div>
-      `;
-    }
-    charContainer.innerHTML = html;
-  }
-
-  function playAudio() {
-    const text = allData[currentIndex].name;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'zh-TW';
-    utterance.rate = 0.8;
-    utterance.pitch = 1.1;
-    window.speechSynthesis.speak(utterance);
-  }
-
-  function nextCard() {
-    currentIndex++;
-    if (currentIndex >= allData.length) currentIndex = 0;
-    updateCard();
-  }
-
-  function prevCard() {
-    currentIndex--;
-    if (currentIndex < 0) currentIndex = allData.length - 1;
-    updateCard();
-  }
-
-  function randomCard() {
-    let newIndex;
-    do { newIndex = Math.floor(Math.random() * allData.length); } while (newIndex === currentIndex);
-    currentIndex = newIndex;
-    updateCard();
-  }
-
-  function toggleList() {
-    modalElement.style.display = (modalElement.style.display === "flex") ? "none" : "flex";
-  }
-
-  function selectFromList(index) {
-    currentIndex = index;
-    updateCard();
-    toggleList();
-  }
-
-  function generateList() {
-    const fragment = document.createDocumentFragment();
-    allData.forEach((p, index) => {
-      const div = document.createElement('div');
-      div.className = 'list-item';
-      div.onclick = () => selectFromList(index);
-      div.innerHTML = `<span>No.${p.id}</span>${p.name}`;
-      fragment.appendChild(div);
-    });
-    listContainer.innerHTML = '';
-    listContainer.appendChild(fragment);
-  }
-
-  window.onclick = function(event) { if (event.target == modalElement) toggleList(); }
-  document.addEventListener('keydown', (e) => {
-    if(modalElement.style.display === "flex") return;
-    if (e.key === 'ArrowRight') nextCard();
-    if (e.key === 'ArrowLeft') prevCard();
-    if (e.key === ' ') playAudio();
-  });
-
-</script>
 </body>
 </html>
-
