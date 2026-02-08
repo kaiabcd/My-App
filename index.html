@@ -99,10 +99,22 @@
   .feedback-o { color: #4CAF50; animation: popIn 0.3s; }
   .feedback-x { color: #F44336; animation: shake 0.3s; }
 
-/* === 拼圖樣式 (原圖比例裁切版) === */
-  .puz-container { width: 100%; max-width: 500px; display: flex; flex-direction: column; align-items: center; animation: fadeIn 0.3s; }
-  .puz-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 100%; padding: 10px; }
+/* === 拼圖樣式 (全螢幕自動適應版) === */
+  .puz-container { width: 100%; display: flex; flex-direction: column; align-items: center; animation: fadeIn 0.3s; }
   
+  /* 步驟 1 & 2 維持原樣 */
+  #puz-step-1, #puz-step-2 { max-width: 500px; margin: 0 auto; }
+
+  /* 步驟 3 (遊戲中) 改為全螢幕佈局 */
+  #puz-step-3 { 
+    position: fixed; top: 0; left: 0; 
+    width: 100%; height: 100%; 
+    background-color: #E0F7FA; /* 確保背景色 */
+    z-index: 100; /* 蓋過其他層 */
+    padding: 10px; padding-bottom: 20px;
+    box-sizing: border-box;
+  }
+
   /* 選圖按鈕 */
   .puz-thumb-card { 
     position: relative; aspect-ratio: 16/9; border-radius: 10px; overflow: hidden; 
@@ -116,45 +128,47 @@
   .puz-btn { background: #00BCD4; color: white; border: none; padding: 12px; border-radius: 50px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.1); }
   .puz-btn-back { background: #795548; color: white; border: none; padding: 10px 20px; border-radius: 50px; margin-top: 20px; cursor: pointer; }
   
-  /* 預覽與倒數 (修改：取消固定寬高，改為自適應) */
+  /* 預覽與倒數 */
   #puz-preview-container { 
-    width: 100%; max-width: 350px; /* 限制最大寬度 */
-    margin-bottom: 10px;
+    width: 100%; max-width: 350px; margin-bottom: 10px;
     border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); overflow: hidden;
-    border: 5px solid #000;
-    background: #ccc;
-    display: flex; justify-content: center; /* 圖片置中 */
+    border: 5px solid #000; background: #ccc; display: flex; justify-content: center;
   }
-  /* 讓預覽圖保持原比例 */
   #puz-preview-img { width: 100%; height: auto; display: block; }
 
   #puz-countdown-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; display: flex; align-items: center; justify-content: center; }
   #puz-countdown-text { font-size: 150px; color: #FFF; font-weight: bold; animation: popIn 0.5s infinite; }
 
-  /* 遊戲盤面 */
-  .puz-header { display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 10px; }
-  .puz-timer { font-size: 24px; font-weight: bold; color: #006064; background: white; padding: 5px 15px; border-radius: 20px; }
+  /* 遊戲盤面控制列 */
+  .puz-header { display: flex; justify-content: space-between; width: 100%; max-width: 600px; align-items: center; height: 50px; flex-shrink: 0; margin-bottom: 5px; }
+  .puz-timer { font-size: 20px; font-weight: bold; color: #006064; background: white; padding: 5px 15px; border-radius: 20px; }
   .puz-btn-small { background: #FF9800; border: none; color: white; padding: 5px 12px; border-radius: 15px; font-weight: bold; cursor: pointer; }
   
-  #puz-board-container { position: relative; width: 100%; max-width: 350px; } /* 移除 aspect-ratio */
+  /* 拼圖容器：佔滿剩餘空間並置中 */
+  #puz-board-container { 
+    flex: 1; 
+    width: 100%; 
+    display: flex; align-items: center; justify-content: center; 
+    position: relative; 
+    overflow: hidden;
+  }
   
-  /* 棋盤 (修改：移除固定比例，由 JS 動態控制) */
+  /* 棋盤 (大小由 JS 計算) */
   #puz-board { 
-    display: grid; width: 100%; 
-    /* height 會由 aspect-ratio 自動決定 */
+    display: grid; 
     background: #fff; box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
-    border: 6px solid #000; 
+    border: 2px solid #000; 
     box-sizing: content-box;
+    /* 這裡不需要 aspect-ratio，因為 JS 會算出精確 px */
   }
   
   .puz-piece { 
     cursor: pointer; 
     box-sizing: border-box; 
-    border: 1px solid black; 
+    border: 1px solid rgba(0,0,0,0.3); 
     position: relative;
     overflow: hidden;
   }
-  
   .puz-piece.selected { filter: brightness(1.3); border: 2px solid #FFEB3B; z-index: 10; transform: scale(0.95); }
   .puz-piece.correct { border: none; } 
 
@@ -162,10 +176,9 @@
   #puz-original-overlay {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     z-index: 50; display: none; 
-    background-size: 100% 100%; /* 確保填滿 */
+    background-size: 100% 100%;
     background-repeat: no-repeat;
-    border: 6px solid #000;
-    animation: fadeIn 0.2s;
+    border: 2px solid #000;
   }
 
   /* 結算 */
@@ -825,11 +838,13 @@ let puzState = { imgUrl: "", size: 3, pieces: [], selected: null, timer: null, s
   function initPuzzle() {
     // 包含之前的高畫質卡面 + 您新提供的網址
     puzState.userImages = [
-      "https://thumbor.4gamers.com.tw/jHALh8scqV-nDCWeDK0tmBbgU60=/adaptive-fit-in/1600x1600/filters:format(avif):quality(60):no_upscale()/https%3A%2F%2Fimg.4gamers.com.tw%2Fckfinder%2Fimages%2FWhy%2520Lee%2FNews%2F37015809_1502602963219590_7943291376840474624_o.jpg",
       "https://image-cdn.hypb.st/https%3A%2F%2Fhk.hypebeast.com%2Ffiles%2F2023%2F03%2Fnew-pokemon-animated-series-trailer-1.jpg?q=90&w=1400&cbr=1&fit=max",
       "https://p2.bahamut.com.tw/B/2KU/80/3a77e4e24df0289d8fcfb90f5715q805.JPG?w=1000",
       "https://www-ws.gov.taipei/Download.ashx?u=LzAwMS9VcGxvYWQvMzA4L2NrZmlsZS9kYTdiMWE5OC1lNDJlLTQ5NzgtOGVlNi1lNTZjYzcyNDk4NTMuanBn&n=6Ie65YyX5biC6KeA5YKz5bGA6KaP5YqD6Ieq5LuKKDExMSnlubQxMOaciOi1t%2b%2b8jOWwh%2biIh1RoZV9Qb2vDqW1vbl9Db21wYW5555qE44CM6aOb57%2bU55qu5Y2h5LiY6KiI55Wr44CN5ZCI5L2c5o6o5Ye65LiA57O75YiX5rS75YuV77yM5q2h6L%2bO5YWo55CD55qE5a%2b25Y%2bv5aSi6L%2b35Yiw6Ie65YyX5LiA5ZCM5YWx6KWE55ub6IiJ44CCLmpwZw%3d%3d&icon=.jpg",
-      "https://wall.bahamut.com.tw/B/43/ih1zyaqhy3kpdfwnkgc6wlouvpwvzowf2fposvaj.JPG"
+      "https://wall.bahamut.com.tw/B/43/ih1zyaqhy3kpdfwnkgc6wlouvpwvzowf2fposvaj.JPG",
+      "https://scontent.ftpe7-3.fna.fbcdn.net/v/t39.30808-6/493577449_1129253392553154_331980544064940069_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=127cfc&_nc_ohc=lF1cSoaByUUQ7kNvwE9xdo6&_nc_oc=AdnyYc27m371vZbwoRN_6KwKw3HR0nENhB13w9lOZ2kL4yOZTdBz7fNZWqx9plIQiMM&_nc_zt=23&_nc_ht=scontent.ftpe7-3.fna&_nc_gid=GmlM9Nms_WeSP6nl-xzwDA&oh=00_AfufL58NBeFSsrbdNKA80Lj8PmqARJxzKbBHlAoTA4FT6w&oe=698DDB1B",
+      "https://inffieldshop.com/wp-content/uploads/2024/05/4573102674210-1-1.jpg",
+      "https://inffieldshop.com/wp-content/uploads/2022/06/4573102640123-1-1.jpg"
     ];
     renderPuzzleGallery();
   }
@@ -893,20 +908,47 @@ function selectPuzzleImage(url) {
     }, 1000);
   }
 
-  function startPuzzleGame() {
+function startPuzzleGame() {
+    // 顯示遊戲區域 (Step 3)
     document.getElementById('puz-step-3').style.display = 'flex';
+    
     const board = document.getElementById('puz-board');
-    board.innerHTML = "";
-    
-    // ★★★ 關鍵修改：將棋盤比例設定為圖片原始比例 ★★★
-    board.style.aspectRatio = `${puzState.ratio}`;
-    board.style.gridTemplateColumns = `repeat(${puzState.size}, 1fr)`;
-    
-    // 原圖遮罩也要設定比例
+    const container = document.getElementById('puz-board-container');
     const overlay = document.getElementById('puz-original-overlay');
+
+    // 1. 清空棋盤
+    board.innerHTML = "";
+    // 清除舊的 aspect-ratio 設定，避免干擾 JS 計算
+    board.style.aspectRatio = ""; 
+
+    // 2. 計算可用空間 (自動偵測螢幕長寬)
+    // 扣除一點邊距 (20px) 避免貼邊
+    const maxW = container.clientWidth - 20;
+    const maxH = container.clientHeight - 20;
+
+    let finalW, finalH;
+
+    // 3. 核心算法：比較「螢幕比例」與「圖片比例」
+    if (maxW / maxH > puzState.ratio) {
+      // 如果螢幕比較寬（相對於圖片），則以「高度」為基準撐滿
+      finalH = maxH;
+      finalW = finalH * puzState.ratio;
+    } else {
+      // 如果螢幕比較窄（相對於圖片），則以「寬度」為基準撐滿
+      finalW = maxW;
+      finalH = finalW / puzState.ratio;
+    }
+
+    // 4. 將計算好的尺寸套用到棋盤與遮罩
+    board.style.width = finalW + "px";
+    board.style.height = finalH + "px";
+    board.style.gridTemplateColumns = `repeat(${puzState.size}, 1fr)`;
+
+    overlay.style.width = finalW + "px";
+    overlay.style.height = finalH + "px";
     overlay.style.backgroundImage = `url(${puzState.imgUrl})`;
-    // overlay 不需要特別設 aspect-ratio，因為它是絕對定位填滿 container
     
+    // 5. 生成拼圖碎片
     puzState.pieces = [];
     const total = puzState.size * puzState.size;
     let indices = Array.from({length: total}, (_, i) => i);
@@ -923,15 +965,12 @@ function selectPuzzleImage(url) {
       piece.dataset.pos = posIndex;
       piece.dataset.img = imgIndex;
       
-      // 設定圖片
       piece.style.backgroundImage = `url(${puzState.imgUrl})`;
-      // 背景大小設定為：(格數 * 100%)
       piece.style.backgroundSize = `${puzState.size * 100}% ${puzState.size * 100}%`; 
       
       const row = Math.floor(imgIndex / puzState.size);
       const col = imgIndex % puzState.size;
       
-      // 計算背景位置 (百分比)
       let xPct = (puzState.size > 1) ? (col / (puzState.size - 1)) * 100 : 0;
       let yPct = (puzState.size > 1) ? (row / (puzState.size - 1)) * 100 : 0;
       
